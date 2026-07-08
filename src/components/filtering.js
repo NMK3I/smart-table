@@ -28,10 +28,26 @@ export function initFiltering(elements, indexes) {
             const stateName = action.dataset.field;
 
             if (stateName) {
-            state[stateName] = '';
+               delete state[stateName];
             }
         }
         // @todo: #4.5 — отфильтровать данные используя компаратор
-        return data.filter(row => compare(row, state));
+        return data.filter(row =>  {
+            if (state.totalFrom) {
+                const fromValue = parseInt(state.totalFrom);
+                if (!isNaN(fromValue) && row.total < fromValue) {
+                    return false;
+                }
+            }
+
+            if (state.totalTo) {
+                const toValue = parseInt(state.totalTo);
+                if (!isNaN(toValue) && row.total > toValue) {
+                    return false;
+                }
+            }
+
+            return compare(row, state);
+        });
     }
 }
