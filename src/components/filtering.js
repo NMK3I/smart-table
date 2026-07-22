@@ -1,53 +1,44 @@
-import {createComparison, defaultRules} from "../lib/compare.js";
-
-// @todo: #4.3 — настроить компаратор
-const compare = createComparison(defaultRules);
-
-export function initFiltering(elements, indexes) {
+export function initFiltering(elements) {
     // @todo: #4.1 — заполнить выпадающие списки опциями
-    Object.keys(indexes).forEach((elementsName) => {
-        elements[elementsName]
-        .append(...Object.values(indexes[elementsName])
-        .map(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
+    const updateIndexes = (elements, indexes) => {
+        Object.keys(indexes).forEach((elementsName) => {
+            elements[elementsName]
+            .append(...Object.values(indexes[elementsName])
+            .map(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
 
-            return option;
-        }))
-    })
-    return (data, state, action) => {
+                return option;
+            }));
+        });
+    };
+
+    const applyFiltering = (query, state, action) => {
         // @todo: #4.2 — обработать очистку поля
         if (action && action.name === 'clear') {
             const input = action.parentElement.querySelector('input');
             
             if (input) {
                 input.value = '';
-            }
-
-            const stateName = action.dataset.field;
-
-            if (stateName) {
-               delete state[stateName];
-            }
+            };
         }
+
         // @todo: #4.5 — отфильтровать данные используя компаратор
-        return data.filter(row =>  {
-            if (state.totalFrom) {
-                const fromValue = parseInt(state.totalFrom);
-                if (!isNaN(fromValue) && row.total < fromValue) {
-                    return false;
+        const filter = {};
+        Object.keys(elements).forEach(key => {
+            if (elements[key]) {
+                if (['INPUT', 'SELECT'].includes(elements[key].tagName) && elements[key].value) {
+                    filter[`filter[${elements[key].name}]`] = elements[key].value;
                 }
-            }
-
-            if (state.totalTo) {
-                const toValue = parseInt(state.totalTo);
-                if (!isNaN(toValue) && row.total > toValue) {
-                    return false;
-                }
-            }
-
-            return compare(row, state);
+            };
         });
+
+        return Object.keys(filter).length ? Object.assign({}, query, filter) : query;
     }
+
+    return {
+        updateIndexes,
+        applyFiltering
+    };
 }

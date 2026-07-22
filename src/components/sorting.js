@@ -1,7 +1,7 @@
-import {sortCollection, sortMap} from "../lib/sort.js";
+import {sortMap} from "../lib/sort.js";
 
 export function initSorting(columns) {
-    return (data, state, action) => {
+    return (query, state, action) => {
         let field = null;
         let order = null;
 
@@ -15,7 +15,7 @@ export function initSorting(columns) {
                 if (column.dataset.field !== action.dataset.field) {
                     column.dataset.value = 'none';
                 }
-            })
+            });
         } else {
             // @todo: #3.3 — получить выбранный режим сортировки
             columns.forEach(column => {
@@ -23,9 +23,11 @@ export function initSorting(columns) {
                     field = column.dataset.field;
                     order = column.dataset.value;
                 }
-            })
+            });
         }
 
-        return sortCollection(data, field, order);
-    }
+        const sort = (field && order !== 'none') ? `${field}:${order}` : null;
+
+        return sort ? Object.assign({}, query, { sort }) : query;
+    };
 }
